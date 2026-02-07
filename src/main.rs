@@ -10,25 +10,25 @@ fn main() {
 
     let path = get_path_from_arg();
     let paths= get_file_paths(&path);
-    let prints = find_commands(paths);
+    let commands = find_commands(paths);
 
-    print_commands_location(prints);
+    print_commands_location(commands);
 
 }
 
-fn print_commands_location(mut prints: Vec<CommandLocation>) {
+fn print_commands_location(mut commands: Vec<CommandLocation>) {
 
-    prints.sort_by_key(
-        |print_founder| print_founder.path.clone()
+    commands.sort_by_key(
+        |command_location| command_location.path.clone()
     );
 
-    if prints.len() == 0 {
+    if commands.len() == 0 {
         println!("No results here :D");
 
         return;
     }
 
-    for print in prints {
+    for print in commands {
         println!("{print}");
     }
 
@@ -36,24 +36,24 @@ fn print_commands_location(mut prints: Vec<CommandLocation>) {
 
 fn find_commands(paths: Vec<PathBuf>) -> Vec<CommandLocation> {
 
-    let mut prints = vec![];
+    let mut commands = vec![];
 
     for path_buf in paths {
         scan_file_for_commands(path_buf)
             .into_iter()
             .for_each(
-                |print| prints.push(print)
+                |command_location| commands.push(command_location)
             );
     }
 
-    prints
+    commands
 
 }
 
 fn scan_file_for_commands(path_buf: PathBuf) -> Option<CommandLocation> {
 
     let mut count = 1usize;
-    let mut print = CommandLocation {
+    let mut command_location = CommandLocation {
         path: path_buf.clone(),
         lines: vec![]
     };
@@ -63,16 +63,15 @@ fn scan_file_for_commands(path_buf: PathBuf) -> Option<CommandLocation> {
     let command = get_command_from_arg();
 
     for line in buf_reader.lines() {
-
         if line.unwrap().contains(&command) {
-            print.lines.push(count);
+            command_location.lines.push(count);
         }
 
         count+=1;
     }
 
-    match print.lines.len() > 0 {
-        true => Some(print),
+    match command_location.lines.len() > 0 {
+        true => Some(command_location),
         false => None
     }
 
