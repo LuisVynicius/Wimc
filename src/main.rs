@@ -1,56 +1,42 @@
-use std::{env, fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader, Read}, path::{Path, PathBuf}};
+use std::{fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+
+use crate::args::get_path_from_arg;
+
+mod args;
 
 fn main() {
-    let args = env::args();
+    
+    let path = get_path_from_arg();
 
-    if args.len() != 2 {
-        panic!("Deve ser inserído 1 argumento");
-    }
+    let mut file_paths= get_file_paths(&path);
 
-    let path_string = args.into_iter().nth(1).unwrap();
-
-    let path = Path::new(&path_string);
-
-    let dir = read_dir(path);
-
-    let mut prints = vec![];
-
-    if let Ok(files) = dir {
-        
-        for file in files {
-            let path = file.unwrap().path();
-
-            let fs = get_file(&path);
-
-            let buf_reader = BufReader::new(fs);
-
-            let mut current_line = 0usize;
-
-            let mut print_founded = PrintFounded {
-                path: path,
-                line: vec![]
-            };
-
-            for line in buf_reader.lines() {
-                current_line+=1;
-                
-                if line.unwrap().contains("println!") {
-                    print_founded.line.push(current_line);
-                }
-            }
-
-            if print_founded.line.len() != 0 {
-                prints.push(print_founded);
-            }
-        }
-
-    }
-
-    println!("{prints:?}");
+    println!("{file_paths:?}");
 
 }
 
 fn find_print() {
+
+}
+
+fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
+
+    let mut paths = vec![];
+
+    let result = read_dir(path_buf);
+
+    let dir = result.unwrap();
+
+    for path_result in dir {
+        let path = path_result.unwrap().path();
+
+        if path.is_file() {
+            paths.push(path);
+        } else {
+            get_file_paths(&path).into_iter().for_each(|path| paths.push(path));
+        }
+    }
+
+    paths
 
 }
 
