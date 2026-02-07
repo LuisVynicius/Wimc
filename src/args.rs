@@ -24,7 +24,8 @@ fn get_arg(nth: usize) -> String {
     let mut args = env::args();
 
     if args.len() != 3 {
-        panic!("Must be exactly 2 args");
+        println!("Must have exactly 2 args");
+        std::process::exit(0);
     }
 
     return args.nth(nth).unwrap()
