@@ -2,38 +2,6 @@ use std::{io::{BufRead, BufReader}, path::PathBuf};
 
 use crate::{args::get_command_from_arg, entity::{CommandLocation, FileError}, file::get_file};
 
-pub fn print_commands_location(mut commands: Vec<CommandLocation>) {
-
-    if commands.len() == 0 {
-        println!("No results here :D");
-
-        return;
-    }
-
-    commands.sort_by_key(
-        |command_location| command_location.path.clone()
-    );
-
-    for print in commands {
-        println!("{print}");
-    }
-
-}
-
-pub fn print_errors(errors: Vec<FileError>) {
-
-    if errors.len() == 0 {
-        println!("No errors here :D");
-
-        return;
-    }
-
-    for error in errors {
-        println!("{error}");
-    }
-
-}
-
 pub fn find_commands(paths: Vec<PathBuf>) -> (Vec<CommandLocation>, Vec<FileError>) {
 
     let mut commands = vec![];
@@ -70,9 +38,23 @@ pub fn scan_file_for_commands(path_buf: PathBuf) -> Result<Option<CommandLocatio
             let buf_reader = BufReader::new(file);
             let command = get_command_from_arg();
 
-            for line in buf_reader.lines() {
-                if line.unwrap().contains(&command) {
-                    command_location.lines.push(count);
+            for line_result in buf_reader.lines() {
+                
+                match line_result {
+                    Ok(line) => {
+                        if line.contains(&command) {
+                            command_location.lines.push(count);
+                        }
+                    },
+                    Err(error) => return Err(
+                        FileError::new(
+                            path_buf
+                                .to_str()
+                                .unwrap()
+                                .to_string()
+                                , error
+                            )
+                        )
                 }
 
                 count+=1;

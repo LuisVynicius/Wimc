@@ -1,4 +1,4 @@
-use crate::{args::get_path_from_arg, commands::{find_commands, print_commands_location, print_errors}, file::get_file_paths};
+use crate::{args::get_path_from_arg, commands::{find_commands}, file::{create_errors_file, create_results_file, get_file_paths}};
 
 mod args;
 mod entity;
@@ -12,10 +12,8 @@ fn main() {
     
     let (commands, errors) = find_commands(paths);
 
-    println!("Results: ");
-    print_commands_location(commands);
+    create_results_file(commands);
 
-    println!("\nErrors: ");
-    print_errors(errors);
+    create_errors_file(errors);
 
 }

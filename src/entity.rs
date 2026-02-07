@@ -16,7 +16,7 @@ impl Display for CommandLocation {
 }
 
 pub struct FileError {
-    path: String,
+    pub path: String,
     error: Error
 }
 
