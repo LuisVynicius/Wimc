@@ -1,29 +1,68 @@
-use std::{fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::{fmt::Display, fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
 
 use crate::args::get_path_from_arg;
 
 mod args;
 
 fn main() {
-    
+
     let path = get_path_from_arg();
+    let paths= get_file_paths(&path);
+    let prints = find_prints(paths);
 
-    let mut file_paths= get_file_paths(&path);
+    print_prints();
 
-    println!("{file_paths:?}");
+}
+
+fn find_prints(paths: Vec<PathBuf>) -> Vec<PrintFounded> {
+
+    let mut prints = vec![];
+
+    for path_buf in paths {
+        scan_file_for_prints(path_buf)
+            .into_iter()
+            .for_each(
+                |print| prints.push(print)
+            );
+    }
+
+    prints
 
 }
 
-fn find_print() {
+fn scan_file_for_prints(path_buf: PathBuf) -> Option<PrintFounded> {
 
-}
+    let mut count = 1usize;
+    let mut print = PrintFounded {
+        path: path_buf.clone(),
+        lines: vec![]
+    };
+
+    let file = get_file(&path_buf);
+    let buf_reader = BufReader::new(file);
+    let command = "println!";
+
+    for line in buf_reader.lines() {
+
+        if line.unwrap().contains(command) {
+            print.lines.push(count);
+        }
+
+        count+=1;
+    }
+
+    match print.lines.len() > 0 {
+        true => Some(print),
+        false => None
+    }
+
+} 
 
 fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
 
     let mut paths = vec![];
 
     let result = read_dir(path_buf);
-
     let dir = result.unwrap();
 
     for path_result in dir {
@@ -32,7 +71,11 @@ fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
         if path.is_file() {
             paths.push(path);
         } else {
-            get_file_paths(&path).into_iter().for_each(|path| paths.push(path));
+            get_file_paths(&path)
+                .into_iter()
+                .for_each(
+                    |path| paths.push(path)
+                );
         }
     }
 
@@ -41,11 +84,23 @@ fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
 }
 
 fn get_file(path: &PathBuf) -> File {
-    OpenOptions::new().read(true).open(path).unwrap()
+    OpenOptions::new()
+        .read(true)
+        .open(path)
+        .unwrap()
 }
 
-#[derive(Debug)]
 struct PrintFounded {
     path: PathBuf,
-    line: Vec<usize>
+    lines: Vec<usize>
+}
+
+impl Display for PrintFounded {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        
+        write!(f, "Path: {}:\nlines: {:?}", self.path.display(), self.lines)
+
+    }
+
 }
