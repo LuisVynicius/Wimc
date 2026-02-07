@@ -12,6 +12,10 @@ fn main() {
     
     let (commands, errors) = find_commands(paths);
 
+    println!("Results: ");
     print_commands_location(commands);
+
+    println!("\nErrors: ");
     print_errors(errors);
+
 }

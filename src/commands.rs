@@ -14,8 +14,6 @@ pub fn print_commands_location(mut commands: Vec<CommandLocation>) {
         |command_location| command_location.path.clone()
     );
 
-    println!("Results:");
-
     for print in commands {
         println!("{print}");
     }
