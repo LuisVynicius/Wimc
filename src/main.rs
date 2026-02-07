@@ -1,25 +1,29 @@
-use std::{fmt::Display, fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::PathBuf};
+use std::{io::{BufRead, BufReader}, path::PathBuf};
 
-use crate::args::get_path_from_arg;
+use crate::{args::{get_command_from_arg, get_path_from_arg}, entity::CommandLocation, flie::{get_file, get_file_paths}};
 
 mod args;
+mod entity;
+mod flie;
 
 fn main() {
 
     let path = get_path_from_arg();
     let paths= get_file_paths(&path);
-    let prints = find_prints(paths);
+    let prints = find_commands(paths);
 
-    print_prints(prints);
+    print_commands_location(prints);
 
 }
 
-fn print_prints(mut prints: Vec<PrintFounded>) {
+fn print_commands_location(mut prints: Vec<CommandLocation>) {
 
-    prints.sort_by_key(|print_founder| print_founder.path.clone());
+    prints.sort_by_key(
+        |print_founder| print_founder.path.clone()
+    );
 
     if prints.len() == 0 {
-        println!("No prints here :D");
+        println!("No results here :D");
 
         return;
     }
@@ -30,12 +34,12 @@ fn print_prints(mut prints: Vec<PrintFounded>) {
 
 }
 
-fn find_prints(paths: Vec<PathBuf>) -> Vec<PrintFounded> {
+fn find_commands(paths: Vec<PathBuf>) -> Vec<CommandLocation> {
 
     let mut prints = vec![];
 
     for path_buf in paths {
-        scan_file_for_prints(path_buf)
+        scan_file_for_commands(path_buf)
             .into_iter()
             .for_each(
                 |print| prints.push(print)
@@ -46,21 +50,21 @@ fn find_prints(paths: Vec<PathBuf>) -> Vec<PrintFounded> {
 
 }
 
-fn scan_file_for_prints(path_buf: PathBuf) -> Option<PrintFounded> {
+fn scan_file_for_commands(path_buf: PathBuf) -> Option<CommandLocation> {
 
     let mut count = 1usize;
-    let mut print = PrintFounded {
+    let mut print = CommandLocation {
         path: path_buf.clone(),
         lines: vec![]
     };
 
     let file = get_file(&path_buf);
     let buf_reader = BufReader::new(file);
-    let command = "println!";
+    let command = get_command_from_arg();
 
     for line in buf_reader.lines() {
 
-        if line.unwrap().contains(command) {
+        if line.unwrap().contains(&command) {
             print.lines.push(count);
         }
 
@@ -70,53 +74,6 @@ fn scan_file_for_prints(path_buf: PathBuf) -> Option<PrintFounded> {
     match print.lines.len() > 0 {
         true => Some(print),
         false => None
-    }
-
-} 
-
-fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
-
-    let mut paths = vec![];
-
-    let result = read_dir(path_buf);
-    let dir = result.unwrap();
-
-    for path_result in dir {
-        let path = path_result.unwrap().path();
-
-        if path.is_file() {
-            paths.push(path);
-        } else {
-            get_file_paths(&path)
-                .into_iter()
-                .for_each(
-                    |path| paths.push(path)
-                );
-        }
-    }
-
-    paths
-
-}
-
-fn get_file(path: &PathBuf) -> File {
-    OpenOptions::new()
-        .read(true)
-        .open(path)
-        .unwrap()
-}
-
-struct PrintFounded {
-    path: PathBuf,
-    lines: Vec<usize>
-}
-
-impl Display for PrintFounded {
-
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        
-        write!(f, "Path: {}\nlines: {:?}", self.path.display(), self.lines)
-
     }
 
 }
