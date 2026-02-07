@@ -1,4 +1,4 @@
-use std::{fs::{File, OpenOptions, read_dir}, path::PathBuf};
+use std::{fs::{File, OpenOptions, read_dir}, io::Error, path::PathBuf};
 
 pub fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
 
@@ -25,11 +25,10 @@ pub fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
 
 }
 
-pub fn get_file(path: &PathBuf) -> File {
+pub fn get_file(path: &PathBuf) -> Result<File, Error> {
     
-    OpenOptions::new()
+     OpenOptions::new()
         .read(true)
         .open(path)
-        .unwrap()
 
 }
