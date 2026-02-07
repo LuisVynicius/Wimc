@@ -1,4 +1,10 @@
-use std::{io::{BufRead, BufReader}, path::PathBuf};
+use std::{
+    io::{
+        BufRead,
+        BufReader
+    },
+    path::PathBuf
+};
 
 use crate::{args::get_command_from_arg, entity::{CommandLocation, FileError}, file::get_file};
 

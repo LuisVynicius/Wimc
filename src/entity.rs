@@ -1,4 +1,8 @@
-use std::{fmt::Display, io::Error, path::PathBuf};
+use std::{
+    fmt::Display,
+    io::Error,
+    path::PathBuf
+};
 
 pub struct CommandLocation {
     pub path: PathBuf,

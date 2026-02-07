@@ -1,4 +1,15 @@
-use std::{fs::{File, OpenOptions, read_dir}, io::{Error, Write}, path::PathBuf};
+use std::{
+    fs::{
+        File,
+        OpenOptions,
+        read_dir
+    },
+    io::{
+        Error,
+        Write
+    },
+    path::PathBuf
+};
 
 use crate::entity::{CommandLocation, FileError};
 

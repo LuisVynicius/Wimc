@@ -1,4 +1,7 @@
-use std::{env, path::PathBuf};
+use std::{
+    env,
+    path::PathBuf
+};
 
 pub fn get_path_from_arg() -> PathBuf {
 
