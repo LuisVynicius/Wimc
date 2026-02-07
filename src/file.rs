@@ -26,11 +26,16 @@ pub fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
         if path.is_file() {
             paths.push(path);
         } else {
-            get_file_paths(&path)
-                .into_iter()
-                .for_each(
-                    |path| paths.push(path)
-                );
+            if 
+                !(path.to_str().unwrap().starts_with("./target")
+                || path.to_str().unwrap().starts_with("./modules"))
+            {
+                get_file_paths(&path)
+                    .into_iter()
+                    .for_each(
+                        |path| paths.push(path)
+                    );
+            }
         }
     }
 
