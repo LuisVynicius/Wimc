@@ -26,8 +26,10 @@ pub fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
 }
 
 pub fn get_file(path: &PathBuf) -> File {
+    
     OpenOptions::new()
         .read(true)
         .open(path)
         .unwrap()
+
 }
