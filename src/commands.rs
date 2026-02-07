@@ -6,16 +6,16 @@ use std::{
     path::PathBuf
 };
 
-use crate::{args::get_command_from_arg, entity::{CommandLocation, FileError}, file::get_file};
+use crate::{entity::{CommandLocation, FileError}, file::get_file};
 
-pub fn find_commands(paths: Vec<PathBuf>) -> (Vec<CommandLocation>, Vec<FileError>) {
+pub fn find_commands(paths: Vec<PathBuf>, command: &str) -> (Vec<CommandLocation>, Vec<FileError>) {
 
     let mut commands = vec![];
     let mut errors = vec![];
 
     for path_buf in paths {
 
-        match scan_file_for_commands(path_buf) {
+        match scan_file_for_commands(path_buf, command) {
             Ok(command_location_opt) => {
                 if let Some(command_location) = command_location_opt {
                     commands.push(command_location);
@@ -29,7 +29,7 @@ pub fn find_commands(paths: Vec<PathBuf>) -> (Vec<CommandLocation>, Vec<FileErro
 
 }
 
-pub fn scan_file_for_commands(path_buf: PathBuf) -> Result<Option<CommandLocation>, FileError> {
+fn scan_file_for_commands(path_buf: PathBuf, command: &str) -> Result<Option<CommandLocation>, FileError> {
 
     let mut count = 1usize;
     let mut command_location = CommandLocation {
@@ -42,7 +42,6 @@ pub fn scan_file_for_commands(path_buf: PathBuf) -> Result<Option<CommandLocatio
     match result {
         Ok(file) => {
             let buf_reader = BufReader::new(file);
-            let command = get_command_from_arg();
 
             for line_result in buf_reader.lines() {
                 

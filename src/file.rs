@@ -11,31 +11,56 @@ use std::{
     path::PathBuf
 };
 
-use crate::entity::{CommandLocation, FileError};
+use crate::{entity::{CommandLocation, FileError}, ignore::Ignored};
 
-pub fn get_file_paths(path_buf: &PathBuf) -> Vec<PathBuf> {
+pub fn get_file_paths(
+    path_buf: &PathBuf,
+    all_files: bool,
+    all_extensions: bool
+) -> Vec<PathBuf> {
 
     let mut paths = vec![];
 
     let result = read_dir(path_buf);
     let dir = result.unwrap();
+    let ignored_files = Ignored::ignored_files();
+    let ignored_extensions = Ignored::ignored_extensions();
 
-    for path_result in dir {
+    'path_result_for: for path_result in dir {
         let path = path_result.unwrap().path();
 
         if path.is_file() {
+            if path.to_str().unwrap().contains("wimc_errors.txt") || path.to_str().unwrap().contains("wimc_results.txt") {
+                continue 'path_result_for;
+            }
+
+            if !all_extensions {
+                let extension_opt = path.extension();
+
+                if let Some(extension) = extension_opt {
+                    for &ignored_extension in &ignored_extensions {
+                        if extension == ignored_extension {
+                            continue 'path_result_for;
+                        }
+                    }
+                }
+            }
+
             paths.push(path);
         } else {
-            if 
-                !(path.to_str().unwrap().starts_with("./target")
-                || path.to_str().unwrap().starts_with("./modules"))
-            {
-                get_file_paths(&path)
-                    .into_iter()
-                    .for_each(
-                        |path| paths.push(path)
-                    );
+            if !all_files {
+                for ignored_file in &ignored_files {
+                    if path.to_str().unwrap().contains(ignored_file) {
+                        continue 'path_result_for;
+                    }
+                }
             }
+
+            get_file_paths(&path, all_files, all_extensions)
+                .into_iter()
+                .for_each(
+                    |path| paths.push(path)
+                );
         }
     }
 
@@ -67,6 +92,15 @@ pub fn create_results_file(mut commands: Vec<CommandLocation>) {
                 |command_location| command_location.path.clone()
             );
 
+            let mut lines = 0usize;
+
+            commands.iter()
+                .for_each(
+                    |command_location| lines+=command_location.lines.len()
+                );
+            
+            file.write_all(format!("Total_files: {} | Total_lines: {}\n\n", commands.len(), lines).as_bytes()).unwrap();
+
             for command_location in commands {
                 file.write_all(
                     format!("{}\n", command_location).as_bytes()
@@ -95,6 +129,8 @@ pub fn create_errors_file(mut errors: Vec<FileError>) {
             errors.sort_by_key(
                 |file_error| file_error.path.clone()
             );
+
+            file.write_all(format!("Total_files: {}\n\n", errors.len()).as_bytes()).unwrap();
 
             for file_error in errors {
                 file.write_all(
