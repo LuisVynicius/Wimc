@@ -24,7 +24,7 @@ fn get_arg(nth: usize) -> String {
     let mut args = env::args();
 
     if args.len() != 3 {
-        panic!("Deve ser inserído 2 argumento");
+        panic!("Must be exactly 2 args");
     }
 
     return args.nth(nth).unwrap()
