@@ -1,4 +1,4 @@
-use std::{fmt::Display, fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::{Path, PathBuf}};
+use std::{fmt::Display, fs::{File, OpenOptions, read_dir}, io::{BufRead, BufReader}, path::PathBuf};
 
 use crate::args::get_path_from_arg;
 
@@ -10,7 +10,23 @@ fn main() {
     let paths= get_file_paths(&path);
     let prints = find_prints(paths);
 
-    print_prints();
+    print_prints(prints);
+
+}
+
+fn print_prints(mut prints: Vec<PrintFounded>) {
+
+    prints.sort_by_key(|print_founder| print_founder.path.clone());
+
+    if prints.len() == 0 {
+        println!("No prints here :D");
+
+        return;
+    }
+
+    for print in prints {
+        println!("{print}");
+    }
 
 }
 
@@ -99,7 +115,7 @@ impl Display for PrintFounded {
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         
-        write!(f, "Path: {}:\nlines: {:?}", self.path.display(), self.lines)
+        write!(f, "Path: {}\nlines: {:?}", self.path.display(), self.lines)
 
     }
 
