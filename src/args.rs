@@ -43,7 +43,7 @@ fn get_extra_args(arg_opt: Option<String>) -> (bool, bool) {
             let characters = arg.as_bytes();
 
             for &character in characters.iter() {
-                if character != 45 && character != 102 && character != 101 {
+                if character != 45 && character != 100 && character != 101 {
                     println!("Extra args unknown: \"{}\"", character as char);
                     std::process::exit(1)
                 }
@@ -53,8 +53,8 @@ fn get_extra_args(arg_opt: Option<String>) -> (bool, bool) {
                     all_extensions = true;
                 }
 
-                // Equal "F"
-                if character == 102 {
+                // Equal "d"
+                if character == 100 {
                     all_paths = true;
                 }
             }
