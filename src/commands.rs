@@ -4,15 +4,15 @@ use std::{
 };
 
 use crate::{
-    entity::{CommandLocation, FileError},
+    entity::{CommandLocation, FileError, FileResult},
     file::get_file,
 };
 
-pub fn find_commands(paths: Vec<PathBuf>, command: &str) -> (Vec<CommandLocation>, Vec<FileError>) {
+pub fn find_commands(file_result: &mut FileResult, command: &str) -> Vec<CommandLocation> {
     let mut commands = vec![];
     let mut errors = vec![];
 
-    for path_buf in paths {
+    for path_buf in file_result.get_paths() {
         match scan_file_for_commands(path_buf, command) {
             Ok(command_location_opt) => {
                 if let Some(command_location) = command_location_opt {
@@ -23,11 +23,16 @@ pub fn find_commands(paths: Vec<PathBuf>, command: &str) -> (Vec<CommandLocation
         }
     }
 
-    (commands, errors)
+    errors.into_iter()
+        .for_each(
+            |error| file_result.push_errors(error)
+        );
+
+    commands
 }
 
 fn scan_file_for_commands(
-    path_buf: PathBuf,
+    path_buf: &PathBuf,
     command: &str,
 ) -> Result<Option<CommandLocation>, FileError> {
     let mut count = 1usize;

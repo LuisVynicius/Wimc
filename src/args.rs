@@ -1,5 +1,7 @@
 use std::{env, path::PathBuf};
 
+use crate::entity::Configs;
+
 pub fn verify_args() {
     let args = env::args();
 
@@ -9,17 +11,16 @@ pub fn verify_args() {
     }
 }
 
-pub fn get_args() -> (PathBuf, String, bool, bool) {
+pub fn get_args() -> (PathBuf, String, Configs) {
     let path_string = get_arg(1).unwrap();
     let command_string = get_arg(2).unwrap();
 
-    let (all_paths, all_extensions) = get_extra_args(get_arg(3));
+    let configs = get_extra_args(get_arg(3));
 
     (
         PathBuf::from(path_string),
         command_string,
-        all_paths,
-        all_extensions,
+        configs
     )
 }
 
@@ -29,9 +30,10 @@ fn get_arg(nth: usize) -> Option<String> {
     return args.nth(nth);
 }
 
-fn get_extra_args(arg_opt: Option<String>) -> (bool, bool) {
+fn get_extra_args(arg_opt: Option<String>) -> Configs {
     let mut all_paths = false;
     let mut all_extensions = false;
+    let mut ocults = false;
 
     match arg_opt {
         Some(arg) => {
@@ -43,24 +45,22 @@ fn get_extra_args(arg_opt: Option<String>) -> (bool, bool) {
             let characters = arg.as_bytes();
 
             for &character in characters.iter() {
-                if character != 45 && character != 100 && character != 101 {
-                    println!("Extra args unknown: \"{}\"", character as char);
-                    std::process::exit(1)
-                }
-
-                // Equal "E"
-                if character == 101 {
-                    all_extensions = true;
-                }
-
-                // Equal "d"
-                if character == 100 {
-                    all_paths = true;
+                match character {
+                    45 => {}
+                    // E
+                    101 => all_extensions = true,
+                    // D
+                    100 => all_paths = true,
+                    111 => ocults = true,
+                    _ => {
+                        println!("Extra args unknown: \"{}\"", character as char);
+                        std::process::exit(1)
+                    }
                 }
             }
 
-            (all_paths, all_extensions)
+            Configs::new(all_paths, all_extensions, ocults)
         }
-        None => (false, false),
+        None => Configs::default(),
     }
 }

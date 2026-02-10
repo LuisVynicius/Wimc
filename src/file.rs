@@ -5,59 +5,125 @@ use std::{
 };
 
 use crate::{
-    entity::{CommandLocation, FileError},
+    entity::{CommandLocation, Configs, FileError, FileResult},
     ignore::Ignored,
 };
 
-pub fn get_file_paths(path_buf: &PathBuf, all_files: bool, all_extensions: bool) -> Vec<PathBuf> {
-    let mut paths = vec![];
-
+pub fn get_paths_by_root(
+    file_result: &mut FileResult,
+    ignored: &Ignored,
+    path_buf: &PathBuf,
+    configs: &Configs
+) {
     let result = read_dir(path_buf);
-    let dir = result.unwrap();
-    let ignored_files = Ignored::ignored_files();
-    let ignored_extensions = Ignored::ignored_extensions();
 
-    'path_result_for: for path_result in dir {
+    let root = match result {
+        Ok(read_dir) => read_dir,
+        Err(_) => {
+            println!("The root is unreachable");
+            std::process::exit(1);
+        }
+    };
+
+    for item_result in root {
+        match item_result {
+            Ok(item) => {
+                let path = item.path().clone();
+
+                if path.is_file() {
+                    if path.to_str().unwrap().contains("wimc_errors.txt") ||
+                        path.to_str().unwrap().contains("wimc_results.txt") {
+                            continue;
+                    }
+
+                    if !configs.get_all_extensions() {
+                        let extension_opt = path.extension();
+
+                        if let Some(extension) = extension_opt {
+                            if ignored.get_ignored_files()
+                                .iter()
+                                .any(|&ignored_extension| extension == ignored_extension)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+
+                    file_result.push_path(item.path());
+                } else {
+                    get_paths_by_path(file_result, ignored, &path, configs);
+                }
+            },
+            Err(error) => file_result.push_errors(FileError::new(path_buf.to_str().unwrap().to_string(), error)),
+        }
+    }
+}
+
+fn get_paths_by_path(
+    file_result: &mut FileResult,
+    ignored: &Ignored,
+    path_buf: &PathBuf,
+    configs: &Configs
+) {
+    
+    let dir = match read_dir(path_buf) {
+        Ok(dir) => dir,
+        Err(error) => {
+            file_result.push_errors(FileError::new(path_buf.to_str().unwrap().to_string(), error));
+            return;
+        }
+    };
+
+    for path_result in dir {
         let path = path_result.unwrap().path();
 
         if path.is_file() {
             if path.to_str().unwrap().contains("wimc_errors.txt")
                 || path.to_str().unwrap().contains("wimc_results.txt")
             {
-                continue 'path_result_for;
+                continue;
             }
 
-            if !all_extensions {
+            if !configs.get_all_extensions() {
                 let extension_opt = path.extension();
 
                 if let Some(extension) = extension_opt {
-                    if ignored_extensions
+                    if ignored.get_ignored_extensions()
                         .iter()
                         .any(|&ignored_extension| extension == ignored_extension)
                     {
-                        continue 'path_result_for;
+                        continue;
                     }
                 }
             }
 
-            paths.push(path);
+            file_result.push_path(path);
         } else {
-            if !all_files {
-                if ignored_files
+            let path_str = path.to_str().unwrap();
+
+            if !configs.get_ocults() {
+                if path_str.split('/').last().unwrap().starts_with(".") {
+                    continue;
+                }
+            }
+            
+            if !configs.get_all_paths() {
+                if ignored.get_ignored_files()
                     .iter()
-                    .any(|&ignored_file| path.to_str().unwrap().contains(ignored_file))
+                    .any(|&ignored_file| path_str.contains(ignored_file))
                 {
-                    continue 'path_result_for;
+                    continue;
                 }
             }
 
-            get_file_paths(&path, all_files, all_extensions)
-                .into_iter()
-                .for_each(|path| paths.push(path));
+            get_paths_by_path(
+                file_result,
+                ignored,
+                &path,
+                configs
+            );
         }
     }
-
-    paths
 }
 
 pub fn get_file(path: &PathBuf) -> Result<File, Error> {

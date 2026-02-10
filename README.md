@@ -27,11 +27,12 @@ sudo cp target/release/wimc /usr/bin
 wimc <path> <command> -<arguments>
 
 # Example:
-wimc . println! -de
+wimc . println! -deo
 
 # Extra arguments.
 -d — scan all directories
 -e — scan all files
+-o — scan ocult files
 
 # Generated Files
 # After execution, Wimc creates two text files in the directory where the command was run:

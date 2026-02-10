@@ -27,11 +27,12 @@ sudo cp target/release/wimc /usr/bin
 wimc <caminho> <comando> -<argumentos>
 
 # Exemplo:
-wimc . println! -de
+wimc . println! -deo
 
 # Argumentos extras.
 -d — percorre todos os diretórios
 -e — percorre todos os arquivos
+-o — percorre arquivos ocultos
 
 # Arquivos gerados
 # Após a execução, o Wimc cria dois arquivos de texto na raiz onde o comando foi executado:
