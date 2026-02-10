@@ -1,7 +1,7 @@
 use std::{
     fs::{File, OpenOptions, read_dir},
     io::{Error, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use crate::{
@@ -15,9 +15,7 @@ pub fn get_paths_by_root(
     path_buf: &PathBuf,
     configs: &Configs
 ) {
-    let result = read_dir(path_buf);
-
-    let root = match result {
+    let root = match read_dir(path_buf) {
         Ok(read_dir) => read_dir,
         Err(_) => {
             println!("The root is unreachable");
@@ -25,37 +23,33 @@ pub fn get_paths_by_root(
         }
     };
 
-    for item_result in root {
-        match item_result {
-            Ok(item) => {
-                let path = item.path().clone();
-
-                if path.is_file() {
-                    if path.to_str().unwrap().contains("wimc_errors.txt") ||
-                        path.to_str().unwrap().contains("wimc_results.txt") {
-                            continue;
-                    }
-
-                    if !configs.get_all_extensions() {
-                        let extension_opt = path.extension();
-
-                        if let Some(extension) = extension_opt {
-                            if ignored.get_ignored_files()
-                                .iter()
-                                .any(|&ignored_extension| extension == ignored_extension)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-
-                    file_result.push_path(item.path());
-                } else {
-                    get_paths_by_path(file_result, ignored, &path, configs);
-                }
-            },
-            Err(error) => file_result.push_errors(FileError::new(path_buf.to_str().unwrap().to_string(), error)),
+    for dir_entry_result in root {
+        match dir_entry_result {
+            Ok(dir_entry) => get_paths(file_result, ignored, dir_entry.path(), configs),
+            Err(error) => file_result.push_errors(
+                FileError::new(path_buf.display().to_string(), error)
+            )
         }
+    }
+}
+
+fn get_paths(
+    file_result: &mut FileResult,
+    ignored: &Ignored,
+    path_buf: PathBuf,
+    configs: &Configs
+) {
+    if path_buf.is_file() {
+        if should_skip_file(&path_buf, ignored, configs) {
+            return;
+        }
+
+        file_result.push_path(path_buf);
+    } else {
+        if should_skip_dir(&path_buf, ignored, configs) {
+            return;
+        }
+        get_paths_by_path(file_result, ignored, &path_buf, configs);
     }
 }
 
@@ -69,61 +63,65 @@ fn get_paths_by_path(
     let dir = match read_dir(path_buf) {
         Ok(dir) => dir,
         Err(error) => {
-            file_result.push_errors(FileError::new(path_buf.to_str().unwrap().to_string(), error));
+            file_result.push_errors(FileError::new(path_buf.display().to_string(), error));
             return;
         }
     };
 
-    for path_result in dir {
-        let path = path_result.unwrap().path();
-
-        if path.is_file() {
-            if path.to_str().unwrap().contains("wimc_errors.txt")
-                || path.to_str().unwrap().contains("wimc_results.txt")
-            {
-                continue;
+    for dir_entry_result in dir {
+        match dir_entry_result {
+            Ok(dir_entry) => {
+                get_paths(file_result, ignored, dir_entry.path(), configs);
+            },
+            Err(error) => {
+                FileError::new(path_buf.display().to_string(), error);
             }
-
-            if !configs.get_all_extensions() {
-                let extension_opt = path.extension();
-
-                if let Some(extension) = extension_opt {
-                    if ignored.get_ignored_extensions()
-                        .iter()
-                        .any(|&ignored_extension| extension == ignored_extension)
-                    {
-                        continue;
-                    }
-                }
-            }
-
-            file_result.push_path(path);
-        } else {
-            let path_str = path.to_str().unwrap();
-
-            if !configs.get_ocults() {
-                if path_str.split('/').last().unwrap().starts_with(".") {
-                    continue;
-                }
-            }
-            
-            if !configs.get_all_paths() {
-                if ignored.get_ignored_files()
-                    .iter()
-                    .any(|&ignored_file| path_str.contains(ignored_file))
-                {
-                    continue;
-                }
-            }
-
-            get_paths_by_path(
-                file_result,
-                ignored,
-                &path,
-                configs
-            );
         }
     }
+
+}
+
+fn should_skip_file(path: &Path, ignored: &Ignored, configs: &Configs) -> bool {
+    let s = path.to_string_lossy();
+
+    if s.contains("wimc_errors.txt") || s.contains("wimc_results.txt") {
+        return true;
+    }
+
+    if !configs.get_all_extensions() {
+        if let Some(ext) = path.extension() {
+            if ignored
+                .get_ignored_extensions()
+                .iter()
+                .any(|e| ext == *e)
+            {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+fn should_skip_dir(path: &Path, ignored: &Ignored, configs: &Configs) -> bool {
+    let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+
+    if !configs.get_ocults() && name.starts_with('.') {
+        return true;
+    }
+
+    if !configs.get_all_paths() {
+        let full = path.to_string_lossy();
+        if ignored
+            .get_ignored_files()
+            .iter()
+            .any(|ignored| full.contains(ignored))
+        {
+            return true;
+        }
+    }
+
+    false
 }
 
 pub fn get_file(path: &PathBuf) -> Result<File, Error> {
