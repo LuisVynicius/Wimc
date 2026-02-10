@@ -1,7 +1,9 @@
-use std::time::Instant;
-
 use crate::{
-    args::{get_args, verify_args}, commands::find_commands, entity::FileResult, file::{create_errors_file, create_results_file, get_paths_by_root}, ignore::Ignored
+    args::{get_args, verify_args},
+    commands::find_commands,
+    entity::FileResult,
+    file::{create_errors_file, create_results_file, get_paths_by_root},
+    ignore::Ignored,
 };
 
 mod args;
@@ -11,7 +13,6 @@ mod file;
 mod ignore;
 
 fn main() {
-    let moment = Instant::now();
     verify_args();
 
     let (path, command, configs) = get_args();
@@ -19,17 +20,10 @@ fn main() {
     let mut file_result = FileResult::new();
     let ignored = Ignored::new();
 
-    get_paths_by_root(
-        &mut file_result,
-        &ignored,
-        &path,
-        &configs
-    );
+    get_paths_by_root(&mut file_result, &ignored, &path, &configs);
 
-    let commands= find_commands(&mut file_result, &command);
+    let commands = find_commands(&mut file_result, &command);
 
     create_results_file(commands);
     create_errors_file(file_result.get_errors());
-
-    println!("{}", moment.elapsed().as_secs_f64());
 }

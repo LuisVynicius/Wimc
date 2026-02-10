@@ -23,10 +23,9 @@ pub fn find_commands(file_result: &mut FileResult, command: &str) -> Vec<Command
         }
     }
 
-    errors.into_iter()
-        .for_each(
-            |error| file_result.push_errors(error)
-        );
+    errors
+        .into_iter()
+        .for_each(|error| file_result.push_errors(error));
 
     commands
 }

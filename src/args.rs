@@ -17,11 +17,7 @@ pub fn get_args() -> (PathBuf, String, Configs) {
 
     let configs = get_extra_args(get_arg(3));
 
-    (
-        PathBuf::from(path_string),
-        command_string,
-        configs
-    )
+    (PathBuf::from(path_string), command_string, configs)
 }
 
 fn get_arg(nth: usize) -> Option<String> {

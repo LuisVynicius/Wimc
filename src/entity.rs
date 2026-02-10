@@ -30,15 +30,14 @@ impl Display for FileError {
 
 pub struct FileResult {
     paths: Vec<PathBuf>,
-    errors: Vec<FileError>
+    errors: Vec<FileError>,
 }
 
 impl FileResult {
-
     pub fn new() -> Self {
         Self {
             paths: vec![],
-            errors: vec![]
+            errors: vec![],
         }
     }
 
@@ -57,25 +56,20 @@ impl FileResult {
     pub fn get_errors(self) -> Vec<FileError> {
         self.errors
     }
-
 }
 
 pub struct Configs {
     all_paths: bool,
     all_extensions: bool,
-    ocults: bool
+    ocults: bool,
 }
 
 impl Configs {
-    pub fn new(
-        all_paths: bool,
-        all_extensions: bool,
-        ocults: bool
-    ) -> Self {
+    pub fn new(all_paths: bool, all_extensions: bool, ocults: bool) -> Self {
         Self {
             all_paths,
             all_extensions,
-            ocults
+            ocults,
         }
     }
 
@@ -97,7 +91,7 @@ impl Default for Configs {
         Self {
             all_extensions: false,
             all_paths: false,
-            ocults: false
+            ocults: false,
         }
     }
 }

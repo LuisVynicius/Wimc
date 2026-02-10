@@ -13,7 +13,7 @@ pub fn get_paths_by_root(
     file_result: &mut FileResult,
     ignored: &Ignored,
     path_buf: &PathBuf,
-    configs: &Configs
+    configs: &Configs,
 ) {
     let root = match read_dir(path_buf) {
         Ok(read_dir) => read_dir,
@@ -26,9 +26,9 @@ pub fn get_paths_by_root(
     for dir_entry_result in root {
         match dir_entry_result {
             Ok(dir_entry) => get_paths(file_result, ignored, dir_entry.path(), configs),
-            Err(error) => file_result.push_errors(
-                FileError::new(path_buf.display().to_string(), error)
-            )
+            Err(error) => {
+                file_result.push_errors(FileError::new(path_buf.display().to_string(), error))
+            }
         }
     }
 }
@@ -37,7 +37,7 @@ fn get_paths(
     file_result: &mut FileResult,
     ignored: &Ignored,
     path_buf: PathBuf,
-    configs: &Configs
+    configs: &Configs,
 ) {
     if path_buf.is_file() {
         if should_skip_file(&path_buf, ignored, configs) {
@@ -57,9 +57,8 @@ fn get_paths_by_path(
     file_result: &mut FileResult,
     ignored: &Ignored,
     path_buf: &PathBuf,
-    configs: &Configs
+    configs: &Configs,
 ) {
-    
     let dir = match read_dir(path_buf) {
         Ok(dir) => dir,
         Err(error) => {
@@ -72,13 +71,12 @@ fn get_paths_by_path(
         match dir_entry_result {
             Ok(dir_entry) => {
                 get_paths(file_result, ignored, dir_entry.path(), configs);
-            },
+            }
             Err(error) => {
                 FileError::new(path_buf.display().to_string(), error);
             }
         }
     }
-
 }
 
 fn should_skip_file(path: &Path, ignored: &Ignored, configs: &Configs) -> bool {
@@ -90,11 +88,7 @@ fn should_skip_file(path: &Path, ignored: &Ignored, configs: &Configs) -> bool {
 
     if !configs.get_all_extensions() {
         if let Some(ext) = path.extension() {
-            if ignored
-                .get_ignored_extensions()
-                .iter()
-                .any(|e| ext == *e)
-            {
+            if ignored.get_ignored_extensions().iter().any(|e| ext == *e) {
                 return true;
             }
         }

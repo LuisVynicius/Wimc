@@ -1,6 +1,6 @@
 pub struct Ignored {
     ignored_files: Vec<&'static str>,
-    ignored_extensions: Vec<&'static str>
+    ignored_extensions: Vec<&'static str>,
 }
 
 impl Ignored {
@@ -27,7 +27,7 @@ impl Ignored {
                 "mp4", "mov", "avi", "mkv", "webm", // Vídeos
                 "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", // Documentos binários
                 "zip", "rar", "7z", "tar", "gz", // Arquivos compactados
-            ]
+            ],
         }
     }
 
