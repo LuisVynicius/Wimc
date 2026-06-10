@@ -25,8 +25,8 @@ impl Ignored {
             ignored_extensions: vec![
                 "ico", "png", "jpeg", "jpg", "gif", "bmp", "tiff", "webp", //Images
                 "mp4", "mov", "avi", "mkv", "webm", // Vídeos
-                "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", // Documentos binários
-                "zip", "rar", "7z", "tar", "gz", // Arquivos compactados
+                "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", // Binary documents
+                "zip", "rar", "7z", "tar", "gz", // Zips
             ],
         }
     }
